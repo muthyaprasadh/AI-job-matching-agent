@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import json
 import sqlite3
+import uuid
 from pathlib import Path
+from typing import Any
 
 from job_agent.models import Draft, Job, Match
 
@@ -30,6 +32,23 @@ CREATE TABLE IF NOT EXISTS applications (
     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+CREATE TABLE IF NOT EXISTS profiles (
+    profile_id TEXT PRIMARY KEY,
+    profile_json TEXT NOT NULL,
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE IF NOT EXISTS conversations (
+    conversation_id TEXT PRIMARY KEY,
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE IF NOT EXISTS conversation_messages (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    conversation_id TEXT NOT NULL,
+    message_json TEXT NOT NULL,
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (conversation_id) REFERENCES conversations(conversation_id)
+);
 """
 
 
@@ -38,7 +57,7 @@ class Store:
         path.parent.mkdir(parents=True, exist_ok=True)
         self.conn = sqlite3.connect(path)
         self.conn.row_factory = sqlite3.Row
-        self.conn.execute(SCHEMA)
+        self.conn.executescript(SCHEMA)
         self._migrate()
         self.conn.commit()
 
@@ -117,3 +136,81 @@ class Store:
             (status, uid),
         )
         self.conn.commit()
+
+    def save_profile(self, profile_id: str, profile: dict[str, Any]) -> None:
+        self.conn.execute(
+            """
+            INSERT INTO profiles (profile_id, profile_json)
+            VALUES (?, ?)
+            ON CONFLICT(profile_id) DO UPDATE SET
+                profile_json = excluded.profile_json,
+                updated_at = CURRENT_TIMESTAMP
+            """,
+            (profile_id, json.dumps(profile, ensure_ascii=False)),
+        )
+        self.conn.commit()
+
+    def get_profile(self, profile_id: str) -> dict[str, Any] | None:
+        row = self.conn.execute(
+            "SELECT profile_json FROM profiles WHERE profile_id = ?", (profile_id,)
+        ).fetchone()
+        return json.loads(row["profile_json"]) if row else None
+
+    def ensure_conversation(self, conversation_id: str | None = None) -> str:
+        identifier = conversation_id or str(uuid.uuid4())
+        self.conn.execute(
+            "INSERT OR IGNORE INTO conversations (conversation_id) VALUES (?)",
+            (identifier,),
+        )
+        self.conn.commit()
+        return identifier
+
+    def add_conversation_message(
+        self, conversation_id: str, message: dict[str, Any]
+    ) -> None:
+        self.conn.execute(
+            """
+            INSERT INTO conversation_messages (conversation_id, message_json)
+            VALUES (?, ?)
+            """,
+            (conversation_id, json.dumps(message, ensure_ascii=False)),
+        )
+        self.conn.execute(
+            """
+            UPDATE conversations SET updated_at = CURRENT_TIMESTAMP
+            WHERE conversation_id = ?
+            """,
+            (conversation_id,),
+        )
+        self.conn.commit()
+
+    def get_conversation_messages(
+        self, conversation_id: str, limit: int = 20
+    ) -> list[dict[str, Any]]:
+        rows = self.conn.execute(
+            """
+            SELECT message_json FROM conversation_messages
+            WHERE conversation_id = ?
+            ORDER BY id DESC LIMIT ?
+            """,
+            (conversation_id, limit),
+        ).fetchall()
+        return [json.loads(row["message_json"]) for row in reversed(rows)]
+
+    def all_jobs(self) -> list[Job]:
+        rows = self.conn.execute(
+            "SELECT * FROM applications ORDER BY created_at DESC"
+        ).fetchall()
+        return [
+            Job(
+                source=row["source"],
+                source_id=row["source_id"],
+                title=row["title"],
+                company=row["company"],
+                location=row["location"],
+                url=row["url"],
+                description=row["description"],
+                job_type=row["job_type"],
+            )
+            for row in rows
+        ]

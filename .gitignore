@@ -5,4 +5,5 @@ __pycache__/
 data/jobs.sqlite
 data/jobs.sqlite-journal
 data/outbox/
+data/resumes/*.pdf
 .pytest_cache/

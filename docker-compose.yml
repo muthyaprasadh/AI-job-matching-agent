@@ -1,0 +1,31 @@
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_DB: job_agent
+      POSTGRES_USER: job_agent
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD before starting}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U job_agent -d job_agent"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  job-agent:
+    build: .
+    ports:
+      - "127.0.0.1:8000:8000"
+    environment:
+      JOB_AGENT_API_KEY: ${JOB_AGENT_API_KEY:?Set JOB_AGENT_API_KEY before starting}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      PGVECTOR_DSN: postgresql://job_agent:${POSTGRES_PASSWORD}@postgres:5432/job_agent
+    volumes:
+      - ./data:/app/data
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  postgres-data:

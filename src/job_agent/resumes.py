@@ -22,6 +22,41 @@ class ResumeFile:
     path: Path
     text: str
     missing: bool = False
+    placeholder: bool = False
+
+
+ROLE_SKILL_GROUPS = {
+    "backend_java": ("languages", "backend", "core_concepts"),
+    "sde": ("languages", "backend", "core_concepts"),
+    "cybersecurity": ("security", "core_concepts", "tools"),
+    "ai_ml": ("ai_ml", "data"),
+    "data_sql": ("data", "databases"),
+    "web_mern": ("languages", "frontend", "backend"),
+}
+
+
+def is_placeholder_resume(text: str) -> bool:
+    lowered = (text or "").casefold()
+    markers = (
+        "replace this file with",
+        "replace this with a tight",
+        "# your name",
+        "you@example.com",
+    )
+    return not lowered.strip() or any(marker in lowered for marker in markers)
+
+
+def resume_query(role: str, profile: dict[str, Any], resume_file: ResumeFile) -> str:
+    skills = profile.get("skills") or {}
+    skill_terms = [
+        str(skill)
+        for group in ROLE_SKILL_GROUPS.get(role, ())
+        for skill in skills.get(group, [])
+    ]
+    role_terms = [ROLE_LABELS.get(role, role)]
+    if not resume_file.placeholder and resume_file.text.strip():
+        return " ".join([*role_terms, *skill_terms, resume_file.text[:3000]])
+    return " ".join([*role_terms, *skill_terms])
 
 
 def _read_pdf(path: Path) -> str:
@@ -70,18 +105,31 @@ def load_for_role(role: str, profile: dict[str, Any]) -> ResumeFile:
     path = mapping.get(role, fallback)
     if not path.exists():
         if fallback.exists() and fallback != path:
+            text = read_resume_file(fallback)
             return ResumeFile(
                 role=role,
                 path=fallback,
-                text=read_resume_file(fallback),
+                text=text,
                 missing=True,
+                placeholder=is_placeholder_resume(text),
             )
-        return ResumeFile(role=role, path=path, text="", missing=True)
-    return ResumeFile(role=role, path=path, text=read_resume_file(path), missing=False)
+        return ResumeFile(role=role, path=path, text="", missing=True, placeholder=True)
+    text = read_resume_file(path)
+    return ResumeFile(
+        role=role,
+        path=path,
+        text=text,
+        missing=False,
+        placeholder=is_placeholder_resume(text),
+    )
 
 
-def inventory(profile: dict[str, Any]) -> list[tuple[str, Path, bool]]:
+def inventory(profile: dict[str, Any]) -> list[tuple[str, Path, str]]:
     rows = []
     for role, path in mapped_paths(profile).items():
-        rows.append((role, path, path.exists()))
+        if not path.exists():
+            status = "MISSING"
+        else:
+            status = "PLACEHOLDER" if is_placeholder_resume(read_resume_file(path)) else "READY"
+        rows.append((role, path, status))
     return rows

@@ -172,8 +172,8 @@ def resumes_cmd() -> None:
     table.add_column("label")
     table.add_column("path")
     table.add_column("status")
-    for role, path, exists in inventory(profile):
-        table.add_row(role, ROLE_LABELS.get(role, role), str(path), "ok" if exists else "MISSING")
+    for role, path, status in inventory(profile):
+        table.add_row(role, ROLE_LABELS.get(role, role), str(path), status)
     console.print(table)
 
 

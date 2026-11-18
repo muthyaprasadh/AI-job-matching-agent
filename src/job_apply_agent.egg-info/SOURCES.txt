@@ -2,6 +2,8 @@ README.md
 pyproject.toml
 src/job_agent/__init__.py
 src/job_agent/__main__.py
+src/job_agent/agent.py
+src/job_agent/api.py
 src/job_agent/cli.py
 src/job_agent/config.py
 src/job_agent/db.py
@@ -9,6 +11,8 @@ src/job_agent/drafter.py
 src/job_agent/matcher.py
 src/job_agent/models.py
 src/job_agent/pipeline.py
+src/job_agent/resumes.py
+src/job_agent/retrieval.py
 src/job_agent/sources/__init__.py
 src/job_agent/sources/collect.py
 src/job_apply_agent.egg-info/PKG-INFO
@@ -17,4 +21,11 @@ src/job_apply_agent.egg-info/dependency_links.txt
 src/job_apply_agent.egg-info/entry_points.txt
 src/job_apply_agent.egg-info/requires.txt
 src/job_apply_agent.egg-info/top_level.txt
+tests/test_agent.py
+tests/test_api.py
+tests/test_drafter.py
+tests/test_evaluation.py
 tests/test_matcher.py
+tests/test_pipeline.py
+tests/test_resumes.py
+tests/test_retrieval.py

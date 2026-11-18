@@ -1,31 +1,44 @@
-Metadata-Version: 2.4
+Metadata-Version: 2.2
 Name: job-apply-agent
 Version: 0.1.0
 Summary: Prepare internship and full-time applications for human approval
 Requires-Python: >=3.11
 Description-Content-Type: text/markdown
-Requires-Dist: httpx>=0.27.0
-Requires-Dist: pydantic>=2.8.0
-Requires-Dist: PyYAML>=6.0.1
-Requires-Dist: rich>=13.7.0
-Requires-Dist: python-dotenv>=1.0.1
-Requires-Dist: click>=8.1.7
+Requires-Dist: httpx==0.28.1
+Requires-Dist: pydantic==2.10.6
+Requires-Dist: PyYAML==6.0.2
+Requires-Dist: rich==13.9.4
+Requires-Dist: python-dotenv==1.0.1
+Requires-Dist: click==8.1.8
+Requires-Dist: pypdf==5.2.0
+Requires-Dist: fastapi==0.115.8
+Requires-Dist: uvicorn==0.34.0
+Provides-Extra: test
+Requires-Dist: pytest==8.3.4; extra == "test"
+Provides-Extra: retrieval
+Requires-Dist: sentence-transformers==3.4.1; extra == "retrieval"
+Requires-Dist: psycopg[binary]==3.2.6; extra == "retrieval"
+Requires-Dist: pgvector==0.4.0; extra == "retrieval"
 
-# Job application prep agent
+# Job Application Prep Agent
 
-Python agent that **finds internships and full-time roles**, **drafts a tailored packet**, and **queues them for your approval**. It **never submits** an application.
+A personal job-search assistant that scores saved postings, finds relevant roles,
+and creates application drafts for your review. **It never submits applications.**
 
-Target mix: Backend/Java, SDE, Cybersecurity, AI/ML, SQL/Data, MERN. Locations: **India + remote international**.
+## What it does
 
-## How it works
-
-1. Pull listings from public JSON APIs (Remotive, RemoteOK, Arbeitnow, Greenhouse, Lever).
-2. Filter by role keywords, internship vs full-time, India / remote.
-3. Score and keep the top N for the day (`daily_limit` in `config.yaml`).
-4. Draft cover letter + resume notes (OpenAI → Ollama → template fallback).
-5. Store in SQLite as `pending`. You `show` / `approve` / `reject`. Approve writes a markdown packet and opens the apply URL so **you** submit.
-
-This stays inside public ATS/job-board APIs. It does not scrape LinkedIn, Naukri, or Indeed, and it does not log into company sites.
+- Fetches public postings from Remotive, RemoteOK, Arbeitnow, Greenhouse, and Lever.
+- Filters by configured roles, location, and job type.
+- Ranks eligible postings against each role-specific resume with BM25 and, when
+  installed, MiniLM embeddings + reciprocal-rank fusion and a cross-encoder reranker.
+  The existing keyword matcher remains an additional signal and benchmark baseline.
+- Stores job embeddings in PostgreSQL/pgvector when configured; otherwise vectors
+  are held in memory for the fetch run.
+- Provides a tool-calling OpenAI agent (`search_jobs`, `explain_match`,
+  `draft_cover_letter`) with conversation and profile memory in SQLite.
+- Validates generated drafts with Pydantic, retries invalid output once per model,
+  and rejects declared skills absent from the saved profile.
+- Requires human review before any application is submitted.
 
 ## Setup (Windows)
 
@@ -33,51 +46,132 @@ This stays inside public ATS/job-board APIs. It does not scrape LinkedIn, Naukri
 cd C:\Users\hp\job-apply-agent
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
-pip install -e .
+pip install -e ".[test]"
 copy .env.example .env
 ```
 
-Edit:
+Edit `data/profile.yaml`, the role resumes under `data/resumes/`, `.env`, and
+`config.yaml` before using the agent. The checked-in resume files are examples;
+replace them with your own accurate information. `job-agent resumes` reports
+whether each mapped resume is ready, missing, or still a placeholder. Never commit
+`.env` or private resume data.
 
-1. `data/profile.yaml` — real name, skills, education, summary.
-2. `data/resume.md` — your live resume.
-3. `.env` — `OPENAI_API_KEY` **or** leave blank to use Ollama (`ollama pull llama3.2`).
-4. `config.yaml` — add Greenhouse board tokens / Lever slugs for companies you want.
+During `fetch`, the matcher builds a separate query for each role from that
+role's resume and ranks eligible listings against it. If a resume is missing or
+still a placeholder, it uses the corresponding skills in `data/profile.yaml`
+instead. With the retrieval extra installed it uses local MiniLM embeddings,
+BM25, and reranking; without it, it uses BM25. Resume text is used locally for
+search and is not sent to the embedding model as an external API request. When
+OpenAI is configured, the drafter sends profile and resume content to the OpenAI
+API; review its data-use terms before enabling it.
 
-## Daily loop
+The collector uses public job-board/ATS APIs. It does not log in to job sites or
+submit applications.
+
+## Daily CLI
 
 ```powershell
-python -m job_agent fetch          # discover + draft (default cap 80)
-python -m job_agent list           # pending queue, highest score first
+python -m job_agent fetch
+python -m job_agent list
 python -m job_agent show SOURCE:ID
-python -m job_agent approve SOURCE:ID   # writes data/outbox/*.md and opens URL
+python -m job_agent approve SOURCE:ID
 python -m job_agent reject SOURCE:ID
-python -m job_agent applied SOURCE:ID   # after you personally submit
-python -m job_agent export-pending      # dump all pending packets
+python -m job_agent applied SOURCE:ID
+python -m job_agent export-pending
+python -m job_agent resumes
 ```
 
-UID comes from the `list` table (example: `remotive:12345` or `greenhouse:stripe:42`).
+`approve` writes a packet and opens the application URL; it does not submit.
+The fetch cap defaults to `daily_limit` in `config.yaml`. `scripts/daily.ps1` can
+be scheduled with Windows Task Scheduler for a daily fetch.
 
-## Schedule “as many as possible”
+## Retrieval evaluation
 
-The cap is `daily_limit` (default 80) so you can actually review. Raise it if you want a larger queue.
+Before changing the matcher, a 60-pair pilot was hand-labeled across 12 locally
+saved job postings and five candidate-profile role tracks. Queries use configured
+role terms and profile skill groups; the role-specific resume documents are
+placeholders, so this is a profile-to-job pilot rather than a full-text resume
+benchmark. The 12 postings are in the local, git-ignored `data/jobs.sqlite`; pair labels are in
+[`data/retrieval_labels.csv`](./data/retrieval_labels.csv). Cybersecurity was
+excluded because this sample contained no clearly relevant posting. These results
+are a small, single-profile pilot, not a held-out or statistically representative
+benchmark. Labels should be expanded and reviewed before choosing a production
+retrieval strategy.
 
-Task Scheduler:
+| Retriever | Recall@5 | MRR | nDCG@5 | Evaluation status |
+| --- | ---: | ---: | ---: | --- |
+| Keyword matcher (pre-boundary-fix baseline) | 0.510 | 0.767 | 0.562 | Measured before changes |
+| Keyword matcher (word-boundary fix) | 0.450 | 0.575 | 0.469 | Measured on the same labels |
+| BM25 | 0.560 | 0.683 | 0.623 | Measured on the same labels |
+| MiniLM dense | 0.710 | 0.707 | 0.708 | Measured on the same labels |
+| BM25 + MiniLM (RRF hybrid) | 0.610 | 0.707 | 0.633 | Measured on the same labels |
+| Hybrid + cross-encoder reranker | 0.710 | 0.707 | 0.680 | Measured on the same labels |
 
-1. Open Task Scheduler → Create Task.
-2. Trigger: daily, morning.
-3. Action: `powershell.exe`
-4. Arguments: `-File C:\Users\hp\job-apply-agent\scripts\daily.ps1`
-5. Run whether you are logged on or not, start in `C:\Users\hp\job-apply-agent`.
+The boundary fix reduces accidental substring matches; its lower score on this
+small sample is a real regression signal to investigate, not a reason to restore
+substring matching. The evaluation script computes recall@5, MRR, and nDCG@5 for
+each mode:
 
-## Add more jobs
+```powershell
+pip install -e ".[retrieval]"
+python scripts\evaluate_retrieval.py --mode keyword
+python scripts\evaluate_retrieval.py --mode bm25
+python scripts\evaluate_retrieval.py --mode dense
+python scripts\evaluate_retrieval.py --mode hybrid
+python scripts\evaluate_retrieval.py --mode reranked
+```
 
-- Put more `greenhouse_boards` / `lever_companies` in `config.yaml` (the public token is usually the careers subdomain).
-- Turn sources on/off under `sources:`.
-- Tighten `roles` keywords if noise is high; lower `min_score` if the queue is too small.
+The MiniLM code uses pinned revisions of
+`sentence-transformers/all-MiniLM-L6-v2` and
+`cross-encoder/ms-marco-MiniLM-L-6-v2`. No separate RAG repository was supplied,
+so this uses the standard Sentence Transformers API rather than copying code from
+an unidentified repository.
 
-## Honest limits
+For API searches to use hybrid retrieval, set `PGVECTOR_DSN` to a PostgreSQL
+database with permission to enable the pgvector extension. Without it, the API's
+search tool uses BM25. The agent stores user profile and conversation memory in
+the local SQLite database; job embeddings are stored in PostgreSQL.
 
-Naukri, LinkedIn Easy Apply, and most Indian portals need a logged-in browser. Automating those accounts usually violates their terms and is easy to get banned. For those sites, use this agent’s packets and apply yourself.
+## API and Docker
 
-Keep claims truthful. The drafter is instructed not to invent experience; you still proofread before submit.
+The API is a single-profile local service. It requires an `X-API-Key` on all
+non-health routes and binds to localhost in Docker Compose:
+
+```powershell
+copy .env.example .env
+# Set JOB_AGENT_API_KEY, POSTGRES_PASSWORD, and (optionally) OPENAI_API_KEY in .env.
+docker compose up --build
+```
+
+Health check: `http://127.0.0.1:8000/health`
+
+Authenticated routes:
+
+- `POST /v1/jobs/search` with `{"query":"Java backend","limit":5}`
+- `GET /v1/matches/{uid}`
+- `POST /v1/chat` with `{"message":"Find jobs that fit my profile"}`
+
+`OPENAI_API_KEY` is required for `/v1/chat`; CLI cover-letter drafting can instead
+use Ollama or the truthful template fallback.
+
+The Docker image excludes `data/`; Compose mounts it at runtime. Keep that volume
+private because it contains your profile, resumes, and conversation history.
+
+## AWS and sharing
+
+No AWS deployment or classmate accounts were created. This repository is a
+single-profile application, not a multi-tenant service: sharing its API key would
+let classmates access the same profile, job history, and conversations. Do not
+expose it publicly or distribute the key. A safe class deployment needs separate
+user authentication, isolated per-user data, explicit consent about profile data,
+and an AWS account/credentials and budget approval.
+
+## CI
+
+GitHub Actions runs `pytest` on Python 3.11 for pushes and pull requests. Run the
+same checks locally with:
+
+```powershell
+pip install -e ".[test]"
+python -m pytest -q
+```
