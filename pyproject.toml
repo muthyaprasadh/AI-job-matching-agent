@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "job-apply-agent"
+version = "0.1.0"
+description = "Prepare internship and full-time applications for human approval"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+  "httpx>=0.27.0",
+  "pydantic>=2.8.0",
+  "PyYAML>=6.0.1",
+  "rich>=13.7.0",
+  "python-dotenv>=1.0.1",
+  "click>=8.1.7",
+  "pypdf>=5.0.0",
+]
+
+[project.scripts]
+job-agent = "job_agent.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]

@@ -1,0 +1,71 @@
+# Job application prep agent
+
+Python agent that **finds internships and full-time roles**, **drafts a tailored packet**, and **queues them for your approval**. It **never submits** an application.
+
+Target mix: Backend/Java, SDE, Cybersecurity, AI/ML, SQL/Data, MERN. Locations: **India + remote international**.
+
+## How it works
+
+1. Pull listings from public JSON APIs (Remotive, RemoteOK, Arbeitnow, Greenhouse, Lever).
+2. Filter by role keywords, internship vs full-time, India / remote.
+3. Score and keep the top N for the day (`daily_limit` in `config.yaml`).
+4. Draft cover letter + resume notes (OpenAI → Ollama → template fallback).
+5. Store in SQLite as `pending`. You `show` / `approve` / `reject`. Approve writes a markdown packet and opens the apply URL so **you** submit.
+
+This stays inside public ATS/job-board APIs. It does not scrape LinkedIn, Naukri, or Indeed, and it does not log into company sites.
+
+## Setup (Windows)
+
+```powershell
+cd C:\Users\hp\job-apply-agent
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install -e .
+copy .env.example .env
+```
+
+Edit:
+
+1. `data/profile.yaml` — real name, skills, education, summary, resume map.
+2. `data/resumes/` — one resume per role (`.md`, `.txt`, or `.pdf`). Update the paths under `resumes:` if you use PDFs.
+3. `.env` — `OPENAI_API_KEY` **or** leave blank to use Ollama (`ollama pull llama3.2`).
+4. `config.yaml` — add Greenhouse board tokens / Lever slugs for companies you want.
+
+## Daily loop
+
+```powershell
+python -m job_agent fetch          # discover + draft (default cap 80)
+python -m job_agent list           # pending queue, highest score first
+python -m job_agent show SOURCE:ID
+python -m job_agent approve SOURCE:ID   # writes data/outbox/*.md and opens URL
+python -m job_agent reject SOURCE:ID
+python -m job_agent applied SOURCE:ID   # after you personally submit
+python -m job_agent export-pending      # dump all pending packets
+python -m job_agent resumes             # check role resume files
+```
+
+UID comes from the `list` table (example: `remotive:12345` or `greenhouse:stripe:42`).
+
+## Schedule “as many as possible”
+
+The cap is `daily_limit` (default 80) so you can actually review. Raise it if you want a larger queue.
+
+Task Scheduler:
+
+1. Open Task Scheduler → Create Task.
+2. Trigger: daily, morning.
+3. Action: `powershell.exe`
+4. Arguments: `-File C:\Users\hp\job-apply-agent\scripts\daily.ps1`
+5. Run whether you are logged on or not, start in `C:\Users\hp\job-apply-agent`.
+
+## Add more jobs
+
+- Put more `greenhouse_boards` / `lever_companies` in `config.yaml` (the public token is usually the careers subdomain).
+- Turn sources on/off under `sources:`.
+- Tighten `roles` keywords if noise is high; lower `min_score` if the queue is too small.
+
+## Honest limits
+
+Naukri, LinkedIn Easy Apply, and most Indian portals need a logged-in browser. Automating those accounts usually violates their terms and is easy to get banned. For those sites, use this agent’s packets and apply yourself.
+
+Keep claims truthful. The drafter is instructed not to invent experience; you still proofread before submit.

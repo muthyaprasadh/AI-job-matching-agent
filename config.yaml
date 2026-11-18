@@ -1,0 +1,123 @@
+daily_limit: 80
+min_score: 0.42
+job_types:
+  - internship
+  - full_time
+
+roles:
+  backend_java:
+    - java
+    - spring
+    - spring boot
+    - backend
+    - microservices
+    - jpa
+    - hibernate
+    - kafka
+  sde:
+    - software engineer
+    - software developer
+    - sde
+    - sde intern
+    - full stack
+  cybersecurity:
+    - cybersecurity
+    - security engineer
+    - soc
+    - penetration
+    - appsec
+    - information security
+    - threat
+  ai_ml:
+    - machine learning
+    - ml engineer
+    - ai engineer
+    - data scientist
+    - llm
+    - nlp
+    - computer vision
+    - pytorch
+    - tensorflow
+  data_sql:
+    - data engineer
+    - sql
+    - etl
+    - spark
+    - snowflake
+    - warehouse
+    - analytics engineer
+  web_mern:
+    - mern
+    - react
+    - node.js
+    - nodejs
+    - mongodb
+    - express
+    - web developer
+    - frontend
+    - javascript
+
+locations:
+  include:
+    - india
+    - bengaluru
+    - bangalore
+    - hyderabad
+    - pune
+    - mumbai
+    - delhi
+    - ncr
+    - gurgaon
+    - gurugram
+    - noida
+    - chennai
+    - remote
+    - worldwide
+    - anywhere
+    - work from home
+  exclude:
+    - on-site only united states
+    - us citizen only
+    - visa sponsorship not available
+
+sources:
+  remotive: true
+  remoteok: true
+  arbeitnow: true
+  greenhouse: true
+  lever: true
+
+# Public ATS boards (no login). Add companies you care about.
+greenhouse_boards:
+  - stripe
+  - datadog
+  - cloudflare
+  - figma
+  - notion
+  - airbnb
+  - discord
+  - openai
+  - anthropic
+  - palantir
+  - mongodb
+  - elastic
+  - gitlab
+  - hashicorp
+  - twilio
+  - shopify
+  - dropbox
+  - atlassian
+  - zoom
+  - nvidia
+
+lever_companies:
+  - netflix
+  - palantir
+  - reddit
+  - ramp
+  - brex
+  - vercel
+  - linear
+  - notion
+  - figma
+  - cloudflare

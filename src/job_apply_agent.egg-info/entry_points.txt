@@ -1,0 +1,2 @@
+[console_scripts]
+job-agent = job_agent.cli:main

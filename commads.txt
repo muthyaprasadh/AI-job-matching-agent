@@ -1,0 +1,5 @@
+.\.venv\Scripts\Activate.ps1
+ python -m job_agent fetch  
+ python -m job_agent list
+ python -m job_agent show SOURCE:ID
+                                        

@@ -1,0 +1,262 @@
+full_name: "Muthya Prasadh Kommuru"
+
+email: "muthyakommuru698@gmail.com"
+phone: "+91 9908657967"
+
+linkedin: "ADD_YOUR_ACTUAL_LINKEDIN_URL"
+github: "ADD_YOUR_ACTUAL_GITHUB_URL"
+portfolio: "https://muthyaprasadhportfilio.netlify.app/"
+
+location: "India"
+work_authorization: "Indian citizen; open to remote international opportunities, subject to work authorization requirements"
+
+target_roles:
+  - "Backend Developer (Java / Spring Boot)"
+  - "Software Engineer / SDE"
+  - "Cybersecurity Engineer"
+  - "AI / ML Engineer"
+  - "SQL / Data Engineer"
+  - "Web Developer (MERN Stack)"
+
+skills:
+  languages:
+    - Java
+    - Python
+    - C
+    - C++
+    - JavaScript
+    - TypeScript
+    - SQL
+
+  backend:
+    - Spring Boot
+    - Spring Security
+    - JWT Authentication
+    - JPA / Hibernate
+    - REST APIs
+    - Node.js
+    - Express.js
+    - WebSockets
+
+  frontend:
+    - React.js
+    - HTML5
+    - CSS3
+    - MERN Stack
+
+  databases:
+    - MySQL
+    - MongoDB
+    - DynamoDB
+
+  data:
+    - SQL
+    - Data Analysis
+    - Machine Learning
+    - Computer Vision
+
+  ai_ml:
+    - Python
+    - PyTorch
+    - scikit-learn
+    - OpenCV
+    - Deep Learning
+    - Computer Vision
+
+  cloud:
+    - AWS Lambda
+    - Amazon API Gateway
+    - Amazon S3
+    - Amazon DynamoDB
+    - Amazon Rekognition
+    - Amazon SNS
+    - Amazon Polly
+    - Amazon Translate
+
+  security:
+    - Spring Security
+    - JWT Authentication
+    - Role-Based Access Control
+    - Web Application Security
+
+  tools:
+    - Git
+    - GitHub
+    - Postman
+    - VS Code
+    - Maven
+    - Google Colab
+
+  core_concepts:
+    - Data Structures and Algorithms
+    - Object-Oriented Programming
+    - Database Management Systems
+    - Operating Systems
+    - Computer Networks
+
+education:
+  degree: "Bachelor of Technology in Computer Science and Engineering"
+  institution: "SRM University-AP, Amaravati, Andhra Pradesh"
+  start_date: "August 2023"
+  expected_graduation: "May 2027"
+  cgpa: "7.84"
+
+  class_xii:
+    institution: "Sri Chaitanya Junior College"
+    years: "2021-2023"
+    percentage: "83.8%"
+
+  class_x:
+    institution: "Dr's KKR Gowtham International School"
+    years: "2020-2021"
+    percentage: "82.3%"
+
+certifications:
+  - "AWS Certified Cloud Practitioner"
+  - "Oracle Certified Professional: Java SE 17 Developer"
+
+experience:
+  - company: "TechAeroes"
+    role: "Software Intern"
+    location: "Hyderabad, India"
+    start_date: "May 2026"
+    end_date: "July 2026"
+    highlights:
+      - "Contributed to a tractor rental platform for an Andhra Pradesh Government project."
+      - "Worked on role-based workflows and real-time availability tracking."
+      - "Contributed to reservation management, administrative dashboards, and booking analytics."
+
+  - company: "EduBot Technologies"
+    role: "MERN Stack Developer Intern"
+    start_date: "June 2025"
+    end_date: "July 2025"
+    highlights:
+      - "Developed a full-stack task management application using MongoDB, Express.js, React.js, and Node.js."
+      - "Implemented JWT authentication and CRUD operations."
+      - "Added task priorities, due dates, and completion tracking."
+      - "Developed REST APIs and integrated frontend components with backend services."
+
+experience_summary: >
+  Computer Science undergraduate at SRM University-AP with internship
+  experience in software development and MERN stack development.
+  Contributed to a government tractor rental platform with reservation
+  management, real-time availability tracking, administrative dashboards,
+  and booking analytics. Built PayFlow, a Java and Spring Boot payment
+  gateway featuring secure REST APIs, JWT authentication, wallet
+  management, transaction history, and audit logging. Developed HelpHub,
+  a full-stack community assistance platform using React.js, Node.js,
+  Express.js, MongoDB, and WebSockets. Also developed an AWS serverless
+  agricultural advisory system and worked on machine learning research
+  involving fine-grained food image classification.
+
+projects:
+  - name: "PayFlow — Enterprise Payment Gateway"
+    technologies:
+      - Java
+      - Spring Boot
+      - Spring Security
+      - JWT
+      - JPA / Hibernate
+      - MySQL
+      - REST APIs
+    blurb: >
+      Developed a secure payment gateway backend with authentication,
+      role-based authorization, wallet management, transaction history,
+      payment processing, audit logging, and centralized exception handling.
+
+  - name: "HelpHub — Real-Time Community Assistance Platform"
+    technologies:
+      - React.js
+      - Node.js
+      - Express.js
+      - MongoDB
+      - REST APIs
+      - WebSockets
+    blurb: >
+      Built a full-stack platform supporting location-aware task matching,
+      role-based workflows, task lifecycle management, real-time
+      communication, and a reward wallet with simulated UPI withdrawal.
+
+  - name: "Smart Farmer Advisory System"
+    technologies:
+      - AWS Lambda
+      - API Gateway
+      - DynamoDB
+      - S3
+      - Amazon Rekognition
+      - Amazon SNS
+      - Amazon Polly
+      - Amazon Translate
+    blurb: >
+      Developed a serverless agricultural advisory application with
+      crop image analysis and multilingual notifications using AWS services.
+
+  - name: "Parkinson's UPDRS Prediction Using Machine Learning"
+    technologies:
+      - Python
+      - scikit-learn
+      - Random Forest
+      - Gradient Boosting
+      - Streamlit
+    blurb: >
+      Built a machine learning application to predict Motor and Total
+      UPDRS scores from voice biomarkers, evaluating ensemble regression
+      models and deploying the selected model through Streamlit.
+
+research:
+  - title: "ContiFood-961: A Fine-Grained Long-Tailed Food Benchmark for Classification"
+    venue: "CVPR MetaFood 2026"
+    status: "Accepted extended abstract"
+    technologies:
+      - PyTorch
+      - ResNet-152
+      - Computer Vision
+      - Deep Learning
+    highlights:
+      - "Co-authored research introducing a benchmark containing 15,130 images across 961 categories."
+      - "Worked on a Hybrid Cross-Token and Frequency Attention framework for long-tailed food classification."
+
+leadership:
+  - organization: "Coding Club, SRM University-AP"
+    role: "Social Media Editor"
+    period: "2025-2026"
+    description: >
+      Managed social media content, technical event promotions,
+      and community engagement initiatives.
+
+  - organization: "Sports Council, SRM University-AP"
+    role: "Formal Events Head"
+    period: "2025-2026"
+    description: >
+      Coordinated formal sports events, event planning,
+      and student participation activities.
+
+job_preferences:
+  employment_types:
+    - Internship
+    - Full-time
+  locations:
+    - India
+    - Remote international
+  target_roles:
+    - Backend Developer
+    - Software Engineer
+    - Cybersecurity Engineer
+    - AI / ML Engineer
+    - SQL / Data Engineer
+    - Web Developer
+  internship_to_full_time: true
+
+# One resume per role. Use .md, .txt, or .pdf. Drop files in data/resumes/.
+default_resume: resume.md
+default_resume_role: sde
+resumes:
+  backend_java: resumes/backend_java.md
+  sde: resumes/sde.md
+  cybersecurity: resumes/cybersecurity.md
+  ai_ml: resumes/ai_ml.md
+  data_sql: resumes/data_sql.md
+  web_mern: resumes/web_mern.md
+constraints:
+  no_auto_submit: true
+  requires_approval: true
